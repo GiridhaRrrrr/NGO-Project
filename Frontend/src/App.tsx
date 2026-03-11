@@ -12,6 +12,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import NgoDashboard from "./pages/NgoDashboard";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -24,12 +27,55 @@ const App = () => (
         <AuthProvider>
           <AppHeader />
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<UserDashboard />} />
-            <Route path="/submit" element={<SubmitRequest />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/analytics" element={<AdminAnalytics />} />
-            <Route path="/ngo" element={<NgoDashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            
+            {/* Protected Routes */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <UserDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/submit" 
+              element={
+                <ProtectedRoute allowedRoles={["user"]}>
+                  <SubmitRequest />
+                </ProtectedRoute>
+              } 
+            />
+            {/* Admin Routes */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/analytics" 
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminAnalytics />
+                </ProtectedRoute>
+              } 
+            />
+            {/* NGO Routes */}
+            <Route 
+              path="/ngo" 
+              element={
+                <ProtectedRoute allowedRoles={["ngo"]}>
+                  <NgoDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

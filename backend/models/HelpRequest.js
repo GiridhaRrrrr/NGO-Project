@@ -3,6 +3,11 @@ const mongoose = require('mongoose');
 const helpRequestSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   userName: { type: String, required: true },
+  assignedNgoId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   category: { 
     type: String, 
     enum: ['Medical', 'Financial', 'Education', 'Disaster'], 

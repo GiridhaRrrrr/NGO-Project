@@ -103,15 +103,32 @@ exports.getNearbyRequests = async (req, res) => {
   }
 };
 
+exports.getNgoTasks = async (req, res) => {
+  try {
+    // Find all requests where assignedNgoId matches the logged-in NGO's ID
+    const tasks = await HelpRequest.find({ assignedNgoId: req.user.id }).sort({ updatedAt: -1 });
+    res.json(tasks);
+  } catch (error) {
+    console.error('Get NGO tasks error:', error);
+    res.status(500).json({ message: 'Server error fetching NGO tasks' });
+  }
+};
+
 // @desc    Update request status (Accepted, Completed, etc.)
 // @route   PATCH /api/requests/:id/status
 exports.updateRequestStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    
+    let updateData = { status };
+
+    // NEW LOGIC: If an NGO accepts the request, permanently link it to them
+    if (status === 'Accepted' && req.user.role === 'ngo') {
+      updateData.assignedNgoId = req.user.id;
+    }
+
     const request = await HelpRequest.findByIdAndUpdate(
       req.params.id, 
-      { status }, 
+      updateData, 
       { new: true }
     );
 
@@ -119,6 +136,7 @@ exports.updateRequestStatus = async (req, res) => {
 
     res.json(request);
   } catch (error) {
+    console.error('Update status error:', error);
     res.status(500).json({ message: 'Server error updating request' });
   }
 };

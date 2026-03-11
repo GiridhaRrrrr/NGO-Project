@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Heart, Users, Shield, Building, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { UserRole } from "@/types";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // <-- Added Link here
 import { toast } from "sonner";
 
 const roles: { role: UserRole; title: string; desc: string; icon: typeof Users; features: string[] }[] = [
@@ -146,14 +146,29 @@ export default function Landing() {
                 required
               />
             </div>
-            <DialogFooter className="pt-4">
-              <Button type="button" variant="outline" onClick={() => setSelectedRole(null)} disabled={isLoading}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Secure Login
-              </Button>
+            
+            {/* UPDATED FOOTER WITH SIGNUP LINK */}
+            <DialogFooter className="pt-4 sm:justify-between items-center gap-4">
+              <div className="text-sm text-muted-foreground w-full sm:w-auto text-center sm:text-left">
+                New here?{" "}
+                <Link 
+                  to="/signup" 
+                  onClick={() => setSelectedRole(null)} // Close modal when navigating
+                  className="text-primary hover:underline font-medium"
+                >
+                  Sign up
+                </Link>
+              </div>
+              
+              <div className="flex gap-2 w-full sm:w-auto justify-end">
+                <Button type="button" variant="outline" onClick={() => setSelectedRole(null)} disabled={isLoading}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Secure Login
+                </Button>
+              </div>
             </DialogFooter>
           </form>
         </DialogContent>

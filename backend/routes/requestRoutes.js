@@ -6,7 +6,8 @@ const {
   createRequest, 
   getUserRequests, 
   getNearbyRequests, 
-  updateRequestStatus 
+  updateRequestStatus,
+  getNgoTasks
 } = require('../controllers/requestController');
 
 // Submit a request: Needs Auth + File Upload handling (for the 'image' field)
@@ -17,6 +18,9 @@ router.get('/user/:userId', auth, getUserRequests);
 
 // Get nearby requests (NGOs looking for verified requests)
 router.get('/nearby', getNearbyRequests);
+
+// Get tasks assigned to the logged-in NGO
+router.get('/ngo-tasks', auth, getNgoTasks);
 
 // Update status (e.g., NGO accepts a request)
 router.patch('/:id/status', auth, updateRequestStatus);
