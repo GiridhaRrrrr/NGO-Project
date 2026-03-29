@@ -24,11 +24,14 @@ const helpRequestSchema = new mongoose.Schema({
     type: { type: String, default: 'Point' },
     coordinates: { type: [Number], required: true } // [lng, lat]
   },
-  imageUrl: { type: String },
+  // imageUrl: { type: String },
+  documents: [{
+    type: String
+  }],
   priorityScore: { type: Number, default: 0 },
   assignedNgoId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true });
 
 helpRequestSchema.index({ location: '2dsphere' });
 module.exports = mongoose.model('HelpRequest', helpRequestSchema);

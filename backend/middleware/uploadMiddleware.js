@@ -1,30 +1,37 @@
 const multer = require('multer');
 const path = require('path');
 
-// Configure storage engine
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // Make sure you have an 'uploads' folder in your backend root
+    // Ensure this folder exists in your backend root
+    cb(null, 'uploads/'); 
   },
   filename: function (req, file, cb) {
-    // Generate a unique filename: timestamp + original extension
-    cb(null, Date.now() + path.extname(file.originalname));
+    // THE FIX: Add a random number to the timestamp so files never overwrite each other
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    
+    // Example output: 1690000000000-123456789.jpg
+    cb(null, uniqueSuffix + path.extname(file.originalname));
   }
 });
 
-// File filter to accept only images
+// (Optional) Add a file filter to only allow images and PDFs
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
+  const allowedFileTypes = /jpeg|jpg|png|gif|pdf/;
+  const extname = allowedFileTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedFileTypes.test(file.mimetype);
+
+  if (extname && mimetype) {
+    return cb(null, true);
   } else {
-    cb(new Error('Not an image! Please upload an image file.'), false);
+    cb('Error: Images and PDFs only!');
   }
 };
 
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit per file
 });
 
 module.exports = upload;

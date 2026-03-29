@@ -28,19 +28,34 @@ exports.createRequest = async (req, res) => {
     }
     
     // Get image path if a file was uploaded
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    // const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // const newRequest = new HelpRequest({
+    //   userId: req.user.id, // Comes from authMiddleware
+    //   userName: req.user.name || 'User', // You might want to fetch user details to get the exact name
+    //   category,
+    //   description,
+    //   contact,
+    //   location: {
+    //     type: 'Point',
+    //     coordinates: [longitude, latitude] // MongoDB needs [lng, lat]
+    //   },
+    //   imageUrl
+    // });
+
+    const documentUrls = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
 
     const newRequest = new HelpRequest({
-      userId: req.user.id, // Comes from authMiddleware
-      userName: req.user.name || 'User', // You might want to fetch user details to get the exact name
+      userId: req.user.id,
+      userName: req.user.name || 'User',
       category,
       description,
       contact,
       location: {
         type: 'Point',
-        coordinates: [longitude, latitude] // MongoDB needs [lng, lat]
+        coordinates: [longitude, latitude] 
       },
-      imageUrl
+      documents: documentUrls 
     });
 
     const savedRequest = await newRequest.save();

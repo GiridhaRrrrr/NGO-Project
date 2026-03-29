@@ -29,6 +29,7 @@ export interface HelpRequest {
   createdAt: string;
   priorityScore: number;
   assignedNgoId?: string;
+  documents?: string[];
 }
 
 export interface AnalyticsData {

@@ -17,6 +17,7 @@ export default function SubmitRequest() {
 
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
   
   const [formData, setFormData] = useState({
     category: "Medical" as RequestCategory,
@@ -25,6 +26,12 @@ export default function SubmitRequest() {
     lat: "",
     lng: ""
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles(Array.from(e.target.files));
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -63,13 +70,26 @@ export default function SubmitRequest() {
 
     setLoading(true);
     try {
-      await submitRequest({
-        ...formData,
-        lat: parseFloat(formData.lat),
-        lng: parseFloat(formData.lng),
-        userId: user?.id,
-        userName: user?.name,
+      const submitData = new FormData();
+      submitData.append("category", formData.category);
+      submitData.append("description", formData.description);
+      submitData.append("contact", formData.contact);
+      submitData.append("lat", formData.lat.toString());
+      submitData.append("lng", formData.lng.toString());
+
+      files.forEach(file => {
+        submitData.append("documents", file);
       });
+
+      await submitRequest(submitData);
+
+      // await submitRequest({
+      //   ...formData,
+      //   lat: parseFloat(formData.lat),
+      //   lng: parseFloat(formData.lng),
+      //   userId: user?.id,
+      //   userName: user?.name,
+      // });
       
       toast({ title: "Request Submitted", description: "NGOs nearby have been notified." });
       navigate("/dashboard"); // Send them back to their dashboard to see the pending request
@@ -161,6 +181,23 @@ export default function SubmitRequest() {
               <Input id="lng" name="lng" type="number" step="any" value={formData.lng} onChange={handleChange} required readOnly />
             </div>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="documents">Upload Supporting Documents/Images (Max 5)</Label>
+          <Input 
+            id="documents" 
+            type="file" 
+            multiple 
+            accept="image/*,.pdf" // Accept images and PDFs
+            onChange={handleFileChange}
+            className="cursor-pointer"
+          />
+          {files.length > 0 && (
+            <p className="text-xs text-gray-500 mt-2">
+              {files.length} file(s) selected
+            </p>
+          )}
         </div>
 
         <Button type="submit" className="w-full bg-primary text-white" disabled={loading}>

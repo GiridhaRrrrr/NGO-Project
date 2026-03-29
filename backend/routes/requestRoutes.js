@@ -11,7 +11,10 @@ const {
 } = require('../controllers/requestController');
 
 // Submit a request: Needs Auth + File Upload handling (for the 'image' field)
-router.post('/', auth, upload.single('image'), createRequest);
+// router.post('/', auth, upload.single('image'), createRequest);
+
+// This allows up to 5 files at once
+router.post('/', auth, upload.array('documents', 5), createRequest);
 
 // Get requests for a specific user (Needs Auth)
 router.get('/user/:userId', auth, getUserRequests);

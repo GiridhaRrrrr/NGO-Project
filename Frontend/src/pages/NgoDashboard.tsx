@@ -7,7 +7,7 @@ import type { HelpRequest } from "@/types";
 import { CategoryBadge, StatusBadge } from "@/components/StatusBadge";
 import { 
   MapPin, List, Map as MapIcon, HandHeart, CheckCircle, 
-  Building, User, Clock, Phone, Navigation, Loader2
+  Building, User, Clock, Phone, Navigation, Loader2, Paperclip, FileText, Image as ImageIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import L from "leaflet";
@@ -26,6 +26,44 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+// Helper component for rendering documents
+const DocumentGallery = ({ documents }: { documents?: string[] }) => {
+  if (!documents || documents.length === 0) return null;
+
+  return (
+    <div className="mt-3 pt-3 border-t border-gray-100">
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+        <Paperclip className="w-3 h-3" /> Attached Evidence ({documents.length})
+      </p>
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {documents.map((doc, idx) => {
+          // Construct the full URL to your backend uploads folder
+          const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+          const fullUrl = doc.startsWith('http') ? doc : `${baseUrl}${doc}`;
+          const isImage = doc.match(/\.(jpeg|jpg|gif|png)$/i);
+          
+          return (
+            <a 
+              key={idx} 
+              href={fullUrl} 
+              target="_blank" 
+              rel="noreferrer"
+              className="flex-shrink-0 w-14 h-14 rounded-lg border border-gray-200 overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all bg-gray-50 flex items-center justify-center group"
+              title="Click to view full size"
+            >
+              {isImage ? (
+                <img src={fullUrl} alt={`Attachment ${idx+1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+              ) : (
+                <FileText className="w-6 h-6 text-gray-400 group-hover:text-primary transition-colors" />
+              )}
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export default function NgoDashboard() {
   const { user } = useAuth();
   const [requests, setRequests] = useState<HelpRequest[]>([]);
@@ -39,11 +77,9 @@ export default function NgoDashboard() {
   const load = async () => {
     setLoading(true);
     try {
-      // Fetch available nearby requests
       const data = await getNearbyRequests(user?.city || "Mumbai", mapCenterLat, mapCenterLng);
       setRequests(data.filter(req => req.status === "Verified"));
 
-      // Fetch NGO's assigned active tasks from backend
       const tasksData = await getNgoTasks();
       setMyTasks(tasksData);
     } catch (error) {
@@ -111,7 +147,6 @@ export default function NgoDashboard() {
               Available Opportunities
             </h2>
             
-            {/* Modern Segmented Control Toggle */}
             <div className="flex bg-gray-100 p-1 rounded-xl">
               <button 
                 onClick={() => setView("map")}
@@ -135,7 +170,7 @@ export default function NgoDashboard() {
             </div>
           ) : view === "map" ? (
             
-            /* --- POLISHED MAP VIEW --- */
+            /* --- MAP VIEW --- */
             <Card className="overflow-hidden shadow-md border-0 rounded-2xl">
               <div className="h-[550px] relative z-0">
                 <MapContainer center={[mapCenterLat, mapCenterLng]} zoom={12} className="h-full w-full" scrollWheelZoom>
@@ -155,6 +190,15 @@ export default function NgoDashboard() {
                             <User className="w-4 h-4 text-gray-400" /> {req.userName}
                           </p>
                           <p className="text-sm text-gray-600 border-l-2 border-gray-200 pl-2 my-2">{req.description}</p>
+                          
+                          {/* Map Attachment Indicator */}
+                          {req.documents && req.documents.length > 0 && (
+                            <div className="flex items-center gap-1.5 text-xs text-blue-600 bg-blue-50 px-2 py-1.5 rounded-md font-medium">
+                              <ImageIcon className="w-3.5 h-3.5" />
+                              {req.documents.length} attached photo(s)
+                            </div>
+                          )}
+
                           <Button
                             onClick={() => handleAccept(req)}
                             className="w-full mt-3 gap-2 shadow-sm"
@@ -170,7 +214,7 @@ export default function NgoDashboard() {
             </Card>
           ) : (
             
-            /* --- POLISHED LIST VIEW --- */
+            /* --- LIST VIEW --- */
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {requests.length === 0 ? (
                 <div className="col-span-full text-center py-20 bg-white border border-dashed border-gray-300 rounded-2xl">
@@ -191,16 +235,22 @@ export default function NgoDashboard() {
                         <User className="w-5 h-5 text-gray-400" /> {req.userName}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-1 text-sm text-gray-600 space-y-4">
-                      <div className="bg-gray-50 p-3 rounded-xl line-clamp-3 leading-relaxed">
-                        {req.description}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
-                        <Navigation className="h-4 w-4 text-primary/70" /> 
-                        Lat: {req.lat.toFixed(3)}, Lng: {req.lng.toFixed(3)}
+                    <CardContent className="flex-1 flex flex-col justify-between">
+                      <div className="text-sm text-gray-600 space-y-4">
+                        <div className="bg-gray-50 p-3 rounded-xl line-clamp-3 leading-relaxed">
+                          {req.description}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
+                          <Navigation className="h-4 w-4 text-primary/70" /> 
+                          Lat: {req.lat.toFixed(3)}, Lng: {req.lng.toFixed(3)}
+                        </div>
+                        
+                        {/* THE NEW DOCUMENT GALLERY */}
+                        <DocumentGallery documents={req.documents} />
+                        
                       </div>
                     </CardContent>
-                    <CardFooter className="pt-0 pb-6 px-6">
+                    <CardFooter className="pt-4 pb-6 px-6">
                       <Button onClick={() => handleAccept(req)} className="w-full gap-2 group-hover:bg-primary/90 transition-colors">
                         <HandHeart className="h-4 w-4" /> Take Ownership
                       </Button>
@@ -212,7 +262,7 @@ export default function NgoDashboard() {
           )}
         </div>
 
-        {/* --- POLISHED MY ACTIVE TASKS SECTION --- */}
+        {/* --- MY ACTIVE TASKS SECTION --- */}
         {myTasks.length > 0 && (
           <div className="pt-10">
             <div className="flex items-center gap-3 mb-6">
@@ -248,6 +298,10 @@ export default function NgoDashboard() {
                         </div>
                       </div>
                       <p className="text-sm text-gray-600 line-clamp-2">{req.description}</p>
+                      
+                      {/* Show Documents in Active Tasks as well so NGO can reference them en route */}
+                      <DocumentGallery documents={req.documents} />
+                      
                     </div>
                     
                     {req.status === "Accepted" && (

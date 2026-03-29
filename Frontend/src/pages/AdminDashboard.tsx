@@ -130,6 +130,36 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
+                {req.documents && req.documents.length > 0 && (
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Attached Documents</p>
+                    <div className="flex flex-wrap gap-2">
+                      {req.documents.map((doc, idx) => {
+                        const fullUrl = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}${doc}`;
+                        const isImage = doc.match(/\.(jpeg|jpg|gif|png)$/i);
+                        
+                        return (
+                          <a 
+                            key={idx} 
+                            href={fullUrl} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="block h-16 w-16 rounded-md border border-gray-200 overflow-hidden hover:opacity-80 transition-opacity"
+                          >
+                            {isImage ? (
+                              <img src={fullUrl} alt={`Doc ${idx+1}`} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full bg-gray-100 flex items-center justify-center text-xs text-gray-500 font-bold">
+                                FILE
+                              </div>
+                            )}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="flex gap-3 mt-auto pt-4 border-t">
                   <Button 
